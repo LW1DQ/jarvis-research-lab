@@ -1,0 +1,99 @@
+# Docker Compose for JARVIS Research Lab
+# Services: LDR (Local Deep Research) + SearXNG + Qdrant + LangFuse
+# Run: docker compose -f docker/docker-compose.yml up -d
+
+version: '3.8'
+
+services:
+  # Local Deep Research (LDR)
+  ldr:
+    image: ghcr.io/local-deep-research/local-deep-research:latest
+    container_name: local-deep-research
+    ports:
+      - "5000:5000"
+    environment:
+      - OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
+      - OLLAMA_MODEL=qwen3:8b
+      - EMBEDDING_MODEL=nomic-embed-text
+      - SEARXNG_URL=http://searxng:8080
+      - TZ=America/Argentina/Rio_Gallegos
+    volumes:
+      - ldr-data:/app/data
+      - ldr-logs:/app/logs
+    depends_on:
+      - searxng
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2.5G
+        reservations:
+          memory: 1G
+
+  # SearXNG (Private search engine)
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    ports:
+      - "8080:8080"
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8080/
+      - SEARXNG_SECRET_KEY=${SEARXNG_SECRET_KEY:-changeme}
+      - SEARXNG_LIMITER=False
+      - TZ=America/Argentina/Rio_Gallegos
+    volumes:
+      - ./searxng:/etc/searxng:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    environment:
+      - QDRANT__SERVICE__HTTP_PORT=6333
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    volumes:
+      - qdrant-data:/qdrant/storage
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  # LangFuse (Observability) - Optional, comment out if not needed
+  # langfuse:
+  #   image: langfuse/langfuse:latest
+  #   container_name: langfuse
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - DATABASE_URL=postgresql://langfuse:langfuse@postgres:5432/langfuse
+  #     - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET:-changeme}
+  #     - SALT=${LANGFUSE_SALT:-changeme}
+  #     - CLICKHOUSE_URL=http://clickhouse:8123
+  #     - MINIO_ROOT_USER=minio
+  #     - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-changeme}
+  #   depends_on:
+  #     - postgres
+  #     - clickhouse
+  #     - minio
+  #   restart: unless-stopped
+
+volumes:
+  ldr-data:
+  ldr-logs:
+  qdrant-data:
+  # postgres-data:
+  # clickhouse-data:
+  # minio-data:

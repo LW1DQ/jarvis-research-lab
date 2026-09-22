@@ -1,0 +1,170 @@
+# Dockerfile for NS-3.48 Simulation Environment - Multi-stage Build
+# Stage 1: NS-3 Builder (compiles NS-3 + ns3-ai gym interface)
+# Stage 2: Runtime (minimal, copies only artifacts)
+
+# ============================================================
+# STAGE 1: NS-3 BUILDER
+# ============================================================
+FROM ubuntu:24.04 AS ns3-builder
+
+# Avoid interactive prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install system dependencies for NS-3 build
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Build tools
+    build-essential \
+    cmake \
+    ninja-build \
+    git \
+    wget \
+    curl \
+    ca-certificates \
+    # Python 3.12 (default)
+    python3 \
+    python3-dev \
+    python3-venv \
+    python3-pybind11 \
+    python3-pip \
+    # NS-3 dependencies
+    libboost-all-dev \
+    libssl-dev \
+    libsqlite3-dev \
+    libxml2-dev \
+    libprotobuf-dev \
+    protobuf-compiler \
+    libgsl-dev \
+    # For NS-3 AI
+    libboost-python-dev \
+    # Visualization
+    python3-matplotlib \
+    python3-numpy \
+    python3-scipy \
+    # Network tools
+    iproute2 \
+    net-tools \
+    iputils-ping \
+    # Clean up
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Python environment
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Create NS-3 workspace
+WORKDIR /opt/ns-3.48
+
+# Copy NS-3 source code (will be provided via build context)
+COPY ns-3.48/ /opt/ns-3.48/
+
+# Build NS-3 with tests (ensure examples, scratch, utils have minimal CMakeLists.txt)
+RUN rm -rf /opt/ns-3.48/cmake-cache && \
+    ./ns3 configure --enable-tests && \
+    ./ns3 build
+
+# Install Python dependencies for NS-3 AI
+RUN pip3 install --no-cache-dir --break-system-packages \
+    "numpy<2" \
+    scipy \
+    matplotlib \
+    pandas \
+    protobuf \
+    grpcio \
+    grpcio-tools \
+    pyyaml \
+    pyzmq \
+    gymnasium \
+    qdrant-client \
+    psutil
+
+# Install the ns3-ai gym interface Python package
+WORKDIR /opt/ns-3.48/contrib/ai/model/gym-interface/py
+RUN pip3 install --no-cache-dir --break-system-packages .
+
+# ============================================================
+# STAGE 2: RUNTIME
+# ============================================================
+FROM ubuntu:24.04 AS runtime
+
+# Avoid interactive prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install minimal runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    # Python 3.12 (default)
+    python3 \
+    python3-dev \
+    python3-venv \
+    python3-pybind11 \
+    python3-pip \
+    # NS-3 runtime dependencies
+    libboost-all-dev \
+    libssl-dev \
+    libsqlite3-dev \
+    libxml2-dev \
+    libprotobuf-dev \
+    protobuf-compiler \
+    libgsl-dev \
+    libboost-python-dev \
+    # Visualization
+    python3-matplotlib \
+    python3-numpy \
+    python3-scipy \
+    # Network tools
+    iproute2 \
+    net-tools \
+    iputils-ping \
+    # Clean up
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Python environment
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Create working directory
+WORKDIR /workspace
+
+# Install Python dependencies for NS-3 AI
+RUN pip3 install --no-cache-dir --break-system-packages \
+    "numpy<2" \
+    scipy \
+    matplotlib \
+    pandas \
+    protobuf \
+    grpcio \
+    grpcio-tools \
+    pyyaml \
+    pyzmq \
+    gymnasium \
+    qdrant-client \
+    psutil
+
+# Set up NS-3 environment (will be mounted at /opt/ns-3.48)
+ENV NS3_HOME=/opt/ns-3.48
+ENV NS3_AI_PATH=/opt/ns-3.48/contrib/ai
+ENV PYTHONPATH=/opt/ns-3.48/contrib/ai/model/gym-interface/py:/opt/ns-3.48/contrib/ai/model/gym-interface/py/ns3ai_gym_env/envs:/opt/ns-3.48/contrib/ai/python_utils
+
+# Create directories
+RUN mkdir -p /workspace/simulations /workspace/results
+
+# Copy NS-3 build artifacts from builder stage
+COPY --from=ns3-builder /opt/ns-3.48/build/ /opt/ns-3.48/build/
+COPY --from=ns3-builder /opt/ns-3.48/contrib/ai/model/gym-interface/py/ns3ai_gym_msg_py/ /opt/ns-3.48/contrib/ai/model/gym-interface/py/ns3ai_gym_msg_py/
+
+# Copy ns3-ai gym interface source for reference
+COPY ns3-ai-gym-interface-full /opt/ns3-ai-gym-interface
+
+# Create entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Expose ports for NS-3 visualization/debugging
+EXPOSE 5000 5001 8888
+
+# Default command
+ENTRYPOINT ["docker-entrypoint.sh"]
+CMD ["bash"]

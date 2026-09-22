@@ -1,0 +1,47 @@
+name: MCP Servers Syntax Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mcp/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'mcp/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: |
+          uv venv --python 3.12 .venv-ci
+          source .venv-ci/bin/activate
+          uv pip install fastmcp mcp httpx pydantic
+
+      - name: Syntax check all MCP servers
+        run: |
+          source .venv-ci/bin/activate
+          for server in mcp/*/server.py; do
+            echo "Checking $server..."
+            python -m py_compile "$server" || exit 1
+          done
+          echo "All MCP servers syntax OK"
+
+      - name: Validate FastMCP imports
+        run: |
+          source .venv-ci/bin/activate
+          python -c "
+          from fastmcp import FastMCP
+          from mcp import types
+          print('FastMCP imports OK')
+          "

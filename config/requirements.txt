@@ -1,0 +1,31 @@
+# Core scientific stack
+numpy==2.4.6
+pandas==3.0.5
+scipy==1.17.1
+matplotlib==3.11.1
+python-docx==1.2.0
+pyzotero==1.15.1
+jupyter
+
+# Vector DB & embeddings
+chromadb==1.5.9
+sentence-transformers==6.0.1
+
+# MCP framework
+fastmcp==4.0.3
+mcp==2.0.0
+
+# Paper QA & research
+paper-qa==2026.8.12
+litellm==1.84.1
+
+# Time series
+darts==0.47.0
+
+# Monitoring & utils
+psutil
+requests
+httpx
+
+# Cloud APIs (opcional - para estrategia híbrida)
+openai>=1.0.0

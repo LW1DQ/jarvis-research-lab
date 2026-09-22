@@ -1,0 +1,30 @@
+{
+  "theme": "obsidian",
+  "cssTheme": "default",
+  "editor": {
+    "fontSize": 14,
+    "lineHeight": 1.6
+  },
+  "corePlugins": {
+    "dataview": true,
+    "canvas": true,
+    "templates": true,
+    "outliner": true,
+    "git": true
+  },
+  "plugins": {
+    "dataview": {
+      "enableInlineQueries": true,
+      "enableRenderedQueries": true
+    },
+    "git": {
+      "autoCommitInterval": 30,
+      "autoPullInterval": 60,
+      "autoPushInterval": 60
+    }
+  },
+  "appearance": {
+    "showLineNumbers": true,
+    "showIndentGuide": true
+  }
+}
