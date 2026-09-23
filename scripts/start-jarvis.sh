@@ -44,9 +44,19 @@ if [[ ! -f "$VENV/bin/activate" ]]; then
     exit 1
 fi
 
+# Configurar Python 3.11 para ns3-ai (compilado con Python 3.11)
+export PYTHON311="/home/diego/.local/bin/python3.11"
+export PATH="/home/diego/.local/bin:$PATH"
+
+# NS-3 Library path para gym bindings
+export NS3_BUILD_DIR="/home/diego/ns-allinone-3.48/ns-3.48/build"
+export LD_LIBRARY_PATH="${NS3_BUILD_DIR}/lib:${LD_LIBRARY_PATH:-}"
+export PYTHONPATH="${NS3_BUILD_DIR}/contrib/ai/model/gym-interface/py/ns3ai_gym_msg_py:${NS3_BUILD_DIR}/contrib/ai/python_utils:${PYTHONPATH:-}"
+
 # 2. Activar virtualenv
 source "$VENV/bin/activate"
 success "Virtualenv activado: $(which python)"
+log "Python 3.11 disponible para ns3-ai: $PYTHON311"
 
 # 3. Verificar Ollama
 log "Verificando Ollama en :11434..."
@@ -105,9 +115,23 @@ start_mcp() {
     local name="$1"
     local script="$2"
     local logfile="$LOG_DIR/${name}.log"
+    local python_cmd="python"
+    local env_vars=""
+    
+    # Usar Python 3.11 para ns3-mcp (necesita ns3-ai compilado con Python 3.11)
+    if [[ "$name" == "ns3-mcp" ]] && [[ -x "$PYTHON311" ]]; then
+        python_cmd="$PYTHON311"
+        log "$name usando Python 3.11: $PYTHON311"
+        # Configurar entorno para NS-3 gym bindings
+        env_vars="LD_LIBRARY_PATH=$NS3_BUILD_DIR/lib:\$LD_LIBRARY_PATH PYTHONPATH=$NS3_BUILD_DIR/contrib/ai/model/gym-interface/py/ns3ai_gym_msg_py:$NS3_BUILD_DIR/contrib/ai/python_utils:\$PYTHONPATH"
+    fi
     
     if [[ -f "$script" ]]; then
-        nohup python "$script" > "$logfile" 2>&1 &
+        if [[ -n "$env_vars" ]]; then
+            nohup env $env_vars "$python_cmd" "$script" > "$logfile" 2>&1 &
+        else
+            nohup "$python_cmd" "$script" > "$logfile" 2>&1 &
+        fi
         local pid=$!
         sleep 1
         if kill -0 "$pid" 2>/dev/null; then

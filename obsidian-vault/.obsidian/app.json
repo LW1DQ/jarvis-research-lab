@@ -1,0 +1,28 @@
+{
+  "theme": "obsidian",
+  "cssTheme": "default",
+  "translucency": false,
+  "legacyEditor": false,
+  "livePreview": true,
+  "promptDelete": true,
+  "newFileLocation": "folder",
+  "newFileFolderPath": "daily",
+  "attachmentFolderPath": "assets",
+  "alwaysUpdateLinks": true,
+  "spellcheck": true,
+  "spellcheckLanguages": ["en", "es"],
+  "readableLineLength": true,
+  "tabSize": 2,
+  "showLineNumber": false,
+  "foldHeading": true,
+  "foldIndent": true,
+  "showFrontmatter": true,
+  "newLinkFormat": "relative",
+  "defaultViewMode": "source",
+  "pdfExportSettings": {
+    "pageSize": "A4",
+    "margin": "normal",
+    "includeVariables": true
+  },
+  "vimMode": false
+}
