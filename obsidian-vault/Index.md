@@ -47,6 +47,7 @@ project: "JARVIS Research"
 | Ollama Retention | ✅ `OLLAMA_KEEP_ALIVE=-1` systemd + polling |
 | **NS-3 Python Bindings (gym)** | ✅ **FIXED - `ns3ai_gym_msg_py` import working** |
 | **MCP Servers (4/4)** | ✅ **All operational via MCP client (8001-8004)** |
+| **AI CM Integration** | 📋 **PLANIFICADO - dissemination-mcp:8005 + scientific-reviewer** |
 
 ## 🗂️ Estructura del Vault
 
@@ -86,3 +87,5 @@ jarvis-vault/
 *Vault creado: {{date:YYYY-MM-DD}} | Proyecto: JARVIS Research | Tesis: NS-3 + Deep Learning | Actualizado: 2026-09-17 15:30 (Dockerfile.ns3 multi-stage build EN PROGRESO - build NS-3 completo en container ~40 min transcurridos, CMakeLists.txt en examples/scratch/utils creados, build en progreso paso 10/1399, Nemotron 3 Ultra Free ✅ + Groq Free + NotebookLM cloud options, all MCP servers async, thesis docs updated. Próximo: esperar build NS-3 completo ~20 min restantes)*
 *Vault creado: {{date:YYYY-MM-DD}} | Proyecto: JARVIS Research | Tesis: NS-3 + Deep Learning | Actualizado: 2026-09-22 (Dockerfile.ns3 multi-stage build ✅ COMPLETADO + Nemotron 3 Ultra Free ✅ FUNCIONANDO + Groq Free + NotebookLM cloud options)*
 *Vault creado: {{date:YYYY-MM-DD}} | Proyecto: JARVIS Research | Tesis: NS-3 + Deep Learning | **Actualizado: 2026-09-23 (NS-3 Python bindings FIXED ✅ - ns3ai_gym_msg_py undefined symbol _ZN3ns34Time10StaticInitEv resuelto con -Wl,--no-as-needed en CMakeLists.txt, Python 3.11 exclusivo para ns3-mcp, todos los 4 MCP servers operativos, gym environment import funcional, end-to-end pipeline listo)***
+*Vault creado: {{date:YYYY-MM-DD}} | Proyecto: JARVIS Research | Tesis: NS-3 + Deep Learning | **Actualizado: 2026-09-23 15:30 (PLAN INTEGRACIÓN AI CM CIENTÍFICO → JARVIS - dissemination-mcp puerto 8005 + scientific-reviewer subagente LangGraph. 6 tools MCP: propose_research, review_draft, approve_draft, export_to_obsidian, list_pending_reviews, get_pipeline_status. Wrapper scripts AI CM probados. Nemotron 3 Ultra analista/redactor/revisor. Export auto obsidian-vault/projects/. Grafo: supervisor→researcher→writer→scientific_reviewer→critiquer. 14h/2d estimado. PENDIENTE IMPLEMENTACIÓN.)***
+*Vault creado: {{date:YYYY-MM-DD}} | Proyecto: JARVIS Research | Tesis: NS-3 + Deep Learning | **Actualizado: 2026-09-24 08:30 (SISTEMA DETENIDO Y MEMORIA LIBERADA ✅ - JARVIS MCP servers (4) detenidos, LDR+SearXNG Docker detenidos, contenedores RAG limpiados, Qdrant detenido. Memoria: 5.2GB usado → 10GB disponible (15GB total). Sistema listo para reinicio con ./scripts/start-jarvis.sh. Documentación completa actualizada.)***
